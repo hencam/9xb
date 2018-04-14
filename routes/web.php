@@ -11,11 +11,19 @@
 |
 */
 
-use App\Post;
-use App\Comment;
-
+use App\Employees;
+use App\Roles;
 
 Auth::routes();
 
-Route::get('/', 'HomeController@index')->name('home');
+// no registering of new accounts
 Route::get('/register', 'HomeController@index')->name('home');
+
+// protect list view with auth
+Route::get('/', 'EmployeeController@index')->middleware('auth');
+
+// employee CRUD handler
+Route::resource('employees','EmployeeController')->middleware('auth');
+
+// role CRUD handler
+Route::resource('roles','RoleController')->middleware('auth');
