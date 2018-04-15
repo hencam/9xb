@@ -6,11 +6,11 @@
             {{ session('status') }}
         </div>
     @endif
-    <a href="{{action('EmployeeController@index')}}" class="btn btn-secondary float-right mr-3" title="Back to employees">
-        Back to employees
-    </a>
     <a href="{{action('RoleController@create')}}" class="btn btn-primary float-right mr-3" title="Add a new employee">
         Add Role
+    </a>
+    <a href="{{action('EmployeeController@index')}}" class="btn btn-secondary float-right mr-3" title="Back to employees">
+        Back to employees
     </a>
     @isset($roles)
         @if (count($roles) > 0)

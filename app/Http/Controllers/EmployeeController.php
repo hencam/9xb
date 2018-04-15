@@ -32,7 +32,7 @@ class EmployeeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         // I need the available roles for the select drop-down
         // I'm joining the Employees table so I can also count how many employees are assigned to each role
@@ -47,7 +47,7 @@ class EmployeeController extends Controller
                 ->groupBy('Roles.id')
                 ->orderBy('job_role', 'asc')
                 ->get();
-        return view('employeeAdd')->with('roles', $roles);
+        return view('employeeAdd')->with(array('roles' => $roles, 'request' => $request));
     }
 
     /**
@@ -62,8 +62,16 @@ class EmployeeController extends Controller
         $validatedData = $request->validate([
             'firstname' => 'required|max:255',
             'lastname' => 'required|max:255',
-            'email' => 'required|max:255'
+            'email' => 'required|email|max:255'
         ]);
+
+        // make sure nothing sneaky is been attempted - ie: user goes to create url manually
+        $employee_count = Employees::where('status', 1)->count();
+        if ($employee_count >= \Config::get('constants.max_employees')) {
+            return redirect('employees/create')
+                    ->withErrors('Sorry, you cannot add any further employees.  Delete an existing one first.')
+                    ->withInput();
+        }
 
         // save changes
         $employee = new Employees;
@@ -84,7 +92,16 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        //
+        // show an employee's record
+        $employee = Employees::where('Employees.status', 1)
+                    ->leftjoin('Roles', function ($join) {
+                        $join->on('roles.id', '=', 'Employees.role_id')
+                        ->where('roles.status', '1');
+                    })
+                    ->select('employees.*', 'roles.job_role')
+                    ->where('employees.id', $id)
+                    ->get();
+        return view('employeeRead')->with(array('employee' => $employee));
     }
 
     /**
@@ -129,7 +146,7 @@ class EmployeeController extends Controller
         $validatedData = $request->validate([
             'firstname' => 'required|max:255',
             'lastname' => 'required|max:255',
-            'email' => 'required|max:255'
+            'email' => 'required|email|max:255'
         ]);
 
         // save changes

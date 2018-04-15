@@ -19,24 +19,26 @@
     <form action="{{action('EmployeeController@store')}}" method="post">
         <div class="form-group">
             <label for="firstname">Firstname</label>
-            <input type="text" name="firstname" class="form-control" placeholder="Enter firstname">
+            <input type="text" name="firstname" class="form-control" placeholder="Enter firstname" value="{{ old('firstname') }}">
         </div>
         <div class="form-group">
             <label for="lastname">Lastname</label>
-            <input type="text" name="lastname" class="form-control" placeholder="Enter lastname">
+            <input type="text" name="lastname" class="form-control" placeholder="Enter lastname" value="{{ old('lastname') }}">
         </div>
         <div class="form-group">
             <label for="email">Email address</label>
-            <input type="text" name="email" class="form-control" placeholder="Enter email">
+            <input type="text" name="email" class="form-control" placeholder="Enter email" value="{{ old('email') }}">
         </div>
         <div class="form-group">
             <label for="job_role">Job role</label>
             @if (count($roles) > 0)
                 <select name="role_id" class="form-control" size=1>
-                    <option value="">- no role -</option>
+                    <option value="0">- no role -</option>
                     @foreach ($roles as $role)
-                        @if ($role->cnt >= 4)
+                        @if ($role->cnt >= \Config::get('constants.max_roles_assigned'))
                             <option value="{{$role->id}}" DISABLED>
+                        @elseif ($role->id == $request->old('role_id'))
+                            <option value="{{$role->id}}" SELECTED>
                         @else
                             <option value="{{$role->id}}">
                         @endif

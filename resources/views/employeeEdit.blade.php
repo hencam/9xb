@@ -36,9 +36,9 @@
                         <label for="job_role">Job role</label>
                         @if (count($roles) > 0)
                             <select name="role_id" class="form-control" size=1>
-                                <option value="">- no role -</option>
+                                <option value="0">- no role -</option>
                                 @foreach ($roles as $role)
-                                    @if ($role->cnt >= 4)
+                                    @if ($role->cnt >= \Config::get('constants.max_roles_assigned'))
                                         <option value="{{$role->id}}" DISABLED>
                                     @elseif ($role->id == $employee->role_id)
                                         <option value="{{$role->id}}" SELECTED>
