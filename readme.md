@@ -1,59 +1,44 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+## requirements to run the test
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+The tech test is designed to run on a LAMP stack, I’m using PHP 7.2.4 and MySQL 5.7.21 (not in strict mode).  The Database is named “9xb” and the credentials are “root” with a blank password.
 
-## About Laravel
+## why I chose laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+I chose to use Laravel 5.6 as it’s one of (if not the) most popular MVC frameworks at the moment, and I have to admit, it gives you some really nice tools to do this kind of thing quickly and easily.  It’s also simple to follow through and pretty much forces you to do things in a readable way.  I’m also still familiarising myself with it, so this was a good test for me.  I found it really enjoyable and useful, I used resources such as the laravel docs, laracasts and of course google and stack overflow, but it’s beginning to click into place and I’m looking forward to getting my teeth into much bigger projects.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## database stuff
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications.
+The database tables were built with laravel migrations (php artisan make:model Employee -m) to generate the model and migration files and I used seeders so I could quickly refresh if I needed to (for example whilst deleting roles and employees).  The actual structure I kept very simple - the only normalisation really required was splitting the roles into their own table so you can link to them from the employee records by their id.  Once you’ve created the database you should be able to build the tables it requires by simply entering the command php artisan migrate:refresh --seed
 
-## Learning Laravel
+## how to log in
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of any modern web application framework, making it a breeze to get started learning the framework.
+The overall tech test is protected behind a login - this was generated with just one command in laravel (php artisan make:auth) which I then slightly tweaked to not allow new users to register.  The password reminder doesn’t work as I suspect I need to configure the outgoing mail server, but I ignored this for the tech test.  The login for 9xb is: admin@9xb.com / password123
+If you want to log in as me, you can use: neil.whitaker@gmail.com / password123
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 1100 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+## development choices
 
-## Laravel Sponsors
+For the actual process of managing employees and roles, I split these into their own separate pages - I’d imagine in a “live” system the person responsible for adding and editing roles might be different to the person who manages employees.  Either way, it was simpler and made more sense to have these in their own pages.
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell):
+The navigation between the two pages are using default bootstrap buttons - I concentrated on functionality rather than UX and style at this moment. :)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Pulse Storm](http://www.pulsestorm.net/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
+I again used a laravel helper to make the basic CRUD controller (php artisan make:controller EmployeeController --resource) the --resource tells laravel to scaffold the CRUD functions for you.
 
-## Contributing
+Once I’d got the edit / update working it was simple to build the ‘add’ functionality.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Then for the roles it was pretty much what I’d already done for the employees.  The logic for preventing more than 4 employees assigned to the same role is performed by the section of template that outputs the role select drop-down - it’s passed a list of roles and how many employees are assigned to it.  The only consideration to remember here is if you are editing an employee then you don’t take that record into account - eg: you are adding a new employee, you need to make sure there aren’t 4 other employees already with that role.  When editing an employee, you need to make sure there aren’t 4 other employees NOT INCLUDING the one you’re editing with that role.
 
-## Security Vulnerabilities
+Speaking of the limits for number of employees and roles, I put these values into a config file (in config/constants.php) so they can easily be amended as and when requirements change.  You simply read the values with (\Config::get('constants.varname'))
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+I’m aware I haven’t strictly followed the brief as per the form html, but having all fields immediately editable on one page and also having to tick a box and then submit to delete, along with having free-form text input on adding a new employee’s role, I thought I should try and improve the UX here.
 
-## License
+## what would I improve?
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+What would I improve?  Some styling would be nice.  Some of the queries for the roles and employees could be tidied up and maybe standardised and not pretty much duplicated.  The weird thing I had to do where the delete link has to be an onClick which submits a hidden form (which I had to hide in a separate TD so it didn’t push the trash icon down!) could be tidied up…  I didn’t really understand the format of the email address too (mail+j+strummer@9xb.com) - was it urlencoded so the +’s are spaces?  That still didn’t seem to make sense, so I left them as is.
+
+## last minute thoughts and additions (or... I was in the shower when I suddenly remembered...)
+
+Two things I just added at the last moment: a check on the create employee submission controller function to make sure there aren’t already 10 employees - this is in case someone manually browses to the add employee url (bypassing the hidden link - never trust users!)  Secondly I added a “view employee record” view which doesn’t show much more info than the employee list, but just to show that the Read bit of CRUD is done.
+
+## how long did this take?
+
+The solution took me around two and a half to three hours, not including time intially spent fighting with laravel and composer.
