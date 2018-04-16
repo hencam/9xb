@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Elequent\Model;
 use App\Employees;
 use App\Roles;
-use DB;
 
 class EmployeeController extends Controller
 {
@@ -17,13 +17,7 @@ class EmployeeController extends Controller
     public function index()
     {
         // list of all employees
-        $employees = Employees::where('Employees.status', 1)
-                    ->leftjoin('Roles', function ($join) {
-                        $join->on('roles.id', '=', 'Employees.role_id')
-                        ->where('roles.status', '1');
-                    })
-                    ->select('employees.*', 'roles.job_role')
-                    ->orderBy('Employees.id', 'asc')->get();
+        $employees = Employees::EmployeeList();
         return view('employeeList')->with(array('employees' => $employees));
     }
 
@@ -38,15 +32,7 @@ class EmployeeController extends Controller
         // I'm joining the Employees table so I can also count how many employees are assigned to each role
         // (as this is adding a NEW employee, I need to count ALL employees with each role)
         // - so I can disable options that already have 4 employees assigned
-        $roles = Roles::where('Roles.status', 1)
-                ->leftjoin('Employees', function ($join) {
-                    $join->on('Employees.role_id', '=', 'roles.id')
-                    ->where('Employees.status', '=', '1');
-                })
-                ->select(DB::raw('Roles.*, COUNT(Employees.id) AS cnt'))
-                ->groupBy('Roles.id')
-                ->orderBy('job_role', 'asc')
-                ->get();
+        $roles = Roles::RoleListWithCount();
         return view('employeeAdd')->with(array('roles' => $roles, 'request' => $request));
     }
 
@@ -66,7 +52,7 @@ class EmployeeController extends Controller
         ]);
 
         // make sure nothing sneaky is been attempted - ie: user goes to create url manually
-        $employee_count = Employees::where('status', 1)->count();
+        $employee_count = Employees::EmployeeCount();
         if ($employee_count >= \Config::get('constants.max_employees')) {
             return redirect('employees/create')
                     ->withErrors('Sorry, you cannot add any further employees.  Delete an existing one first.')
@@ -74,13 +60,7 @@ class EmployeeController extends Controller
         }
 
         // save changes
-        $employee = new Employees;
-        $employee->firstname = $request->get('firstname');
-        $employee->lastname = $request->get('lastname');
-        $employee->email = $request->get('email');
-        $employee->role_id = $request->get('role_id');
-        $employee->status = 1;
-        $employee->save();
+        Employees::EmployeeSave($request);
         return redirect('employees');
     }
 
@@ -93,14 +73,7 @@ class EmployeeController extends Controller
     public function show($id)
     {
         // show an employee's record
-        $employee = Employees::where('Employees.status', 1)
-                    ->leftjoin('Roles', function ($join) {
-                        $join->on('roles.id', '=', 'Employees.role_id')
-                        ->where('roles.status', '1');
-                    })
-                    ->select('employees.*', 'roles.job_role')
-                    ->where('employees.id', $id)
-                    ->get();
+        $employee = Employees::EmployeeRecord($id);
         return view('employeeRead')->with(array('employee' => $employee));
     }
 
@@ -115,22 +88,12 @@ class EmployeeController extends Controller
         // edit an employee
         // no join to the role table or ordering needed here as we're only ever going to edit 1 record at a time
         // so we'll save some processor time :)
-        $employees = Employees::where('status', 1)
-                    ->where('id', $id)
-                    ->get();
+        $employees = Employees::EmployeeRecord($id);
+
         // I need the available roles for the select drop-down
         // I'm joining the Employees table so I can also count how many employees are assigned to each role
         // (not counting the current employee id) - so I can disable options that already have 4 employees assigned
-        $roles = Roles::where('Roles.status', 1)
-                ->leftjoin('Employees', function ($join) use ($id) {
-                    $join->on('Employees.role_id', '=', 'roles.id')
-                    ->where('Employees.status', '=', '1')
-                    ->where('Employees.id', '<>', $id);
-                })
-                ->select(DB::raw('Roles.*, COUNT(Employees.id) AS cnt'))
-                ->groupBy('Roles.id')
-                ->orderBy('job_role', 'asc')
-                ->get();
+        $roles = Roles::RoleListWithCountExcept($id);
         return view('employeeEdit')->with(array('employees' => $employees, 'roles' => $roles));
     }
 
@@ -150,12 +113,7 @@ class EmployeeController extends Controller
         ]);
 
         // save changes
-        $employee = Employees::find($id);
-        $employee->firstname = $request->get('firstname');
-        $employee->lastname = $request->get('lastname');
-        $employee->email = $request->get('email');
-        $employee->role_id = $request->get('role_id');
-        $employee->save();
+        Employees::EmployeeUpdate($id, $request);
         return redirect('employees');
     }
 
@@ -167,10 +125,7 @@ class EmployeeController extends Controller
      */
     public function destroy($id)
     {
-        // don't delete just mark status 0
-        $employee = Employees::find($id);
-        $employee->status = 0;
-        $employee->save();
+        Employees::EmployeeDelete($id);
         return redirect('employees');
     }
 }

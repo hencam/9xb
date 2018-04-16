@@ -18,11 +18,12 @@ class CreateEmployeesTable extends Migration
             $table->string('firstname');
             $table->string('lastname');
             $table->string('email');
-            $table->integer('role_id');
+            $table->integer('role_id')->nullable();
             $table->boolean('status');
             $table->timestamps();
 
             $table->index('status');
+            $table->index('role_id');
         });
     }
 

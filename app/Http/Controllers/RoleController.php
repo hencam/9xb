@@ -17,16 +17,7 @@ class RoleController extends Controller
     public function index()
     {
         // show the list (default view)
-        // get all the available roles, and the number of employees assigned to them
-        $roles = Roles::where('Roles.status', 1)
-                ->leftjoin('Employees', function ($join) {
-                    $join->on('Employees.role_id', '=', 'roles.id')
-                    ->where('Employees.status', '=', '1');
-                })
-                ->select(DB::raw('Roles.*, COUNT(Employees.id) AS cnt'))
-                ->groupBy('Roles.id')
-                ->orderBy('job_role', 'asc')
-                ->get();
+        $roles = Roles::RoleListWithCount();
         return view('roleList')->with('roles', $roles);
     }
 
@@ -54,11 +45,7 @@ class RoleController extends Controller
             'job_role' => 'required|max:255'
         ]);
 
-        // save changes
-        $role = new Roles;
-        $role->job_role = $request->get('job_role');
-        $role->status = 1;
-        $role->save();
+        Roles::RoleSave($request);
         return redirect('roles');
     }
 
@@ -70,7 +57,7 @@ class RoleController extends Controller
      */
     public function show($id)
     {
-        //
+        // there is nothing using this
     }
 
     /**
@@ -82,9 +69,7 @@ class RoleController extends Controller
     public function edit($id)
     {
         // show the edit form
-        $roles = Roles::where('Roles.status', 1)
-                ->where('Roles.id', $id)
-                ->get();
+        $roles = Roles::RoleRecord($id);
         return view('roleEdit')->with('roles', $roles);
     }
 
@@ -103,9 +88,7 @@ class RoleController extends Controller
         ]);
 
         // save changes
-        $role = Roles::find($id);
-        $role->job_role = $request->get('job_role');
-        $role->save();
+        Roles::RoleUpdate($id, $request);
         return redirect('roles');
     }
 
@@ -117,14 +100,10 @@ class RoleController extends Controller
      */
     public function destroy($id)
     {
-        // don't delete just mark status 0
-        $role = Roles::find($id);
-        $role->status = 0;
-        $role->save();
+        Roles::RoleDelete($id);
 
         // now mark any employees with the deleted role back to 0 (no role)
-        $employee = Employees::where('role_id', $id)
-                    ->update(['role_id' => 0]);
+        Employees::EmployeeRemoveRole($id);
         
         return redirect('roles');
     }

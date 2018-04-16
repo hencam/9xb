@@ -33,7 +33,7 @@
             <label for="job_role">Job role</label>
             @if (count($roles) > 0)
                 <select name="role_id" class="form-control" size=1>
-                    <option value="0">- no role -</option>
+                    <option value="">- no role -</option>
                     @foreach ($roles as $role)
                         @if ($role->cnt >= \Config::get('constants.max_roles_assigned'))
                             <option value="{{$role->id}}" DISABLED>
@@ -49,7 +49,7 @@
                 <small id="role_idHelp" class="form-text text-muted">Roles can be assigned to a max of 4 employees. You will not be able to select roles already assigned to 4 employees.</small>
             @else
                 <p>There are no roles on the system!</p>
-                <input type="hidden" name="role_id" value="0">
+                <input type="hidden" name="role_id" value="">
             @endif
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
